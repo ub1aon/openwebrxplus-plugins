@@ -8,12 +8,12 @@
 
 // Create a namespace for our plugin
 Plugins.thumbtune = Plugins.thumbtune || {};
-Plugins.thumbtune._version = "1.0.1";
+Plugins.thumbtune._version = "1.0.2";
 
 // Global configurations and state within the plugin
 Plugins.thumbtune.config = {
-    steps: [500, 1000, 10000, 25000, 50000], // Added 10k step
-    initialStepIdx: 1,                       // Start with the 1k step
+    steps: [500, 1000, 10000, 25000, 50000], 
+    initialStepIdx: 1,                       
     updateInterval: 500, 
     repeatDelay: 400, 
     repeatRate: 120
@@ -80,9 +80,8 @@ Plugins.thumbtune.utils = {
     }
 };
 
-// Mandatory plugin initialization function (OpenWebRX+ requirement)
+// Mandatory plugin initialization function
 Plugins.thumbtune.init = function () {
-    // Check for base dependency on the utils plugin
     if (!Plugins.isLoaded('utils', 0.6)) {
 	return false;
     }
@@ -221,21 +220,34 @@ Plugins.thumbtune.init = function () {
 	createBtn('+', 'owrx-tt-btn owrx-tt-btn-zoom', function () { window.zoomInOneStep?.(); }, true) 
     ); 
 
-    // Row 2: Frequency step configuration and tuning (\u276E and \u276F are single heavy chevrons)
+    // Row 2: Frequency step configuration and tuning
     var row2 = document.createElement('div'); 
     row2.className = 'owrx-tt-row';
     
     var doTune = function (dir) { 
 	var s = document.querySelector('#openwebrx-prop-step, select[id*="step"]'); 
-	if (s) { s.value = config.steps[state.currentStepIdx]; s.dispatchEvent(new Event('change')); } 
+	if (s) {
+	    var targetStep = String(config.steps[state.currentStepIdx]);
+	    if (s.value !== targetStep) {
+		s.value = targetStep; 
+		s.dispatchEvent(new Event('change')); 
+	    }
+	} 
 	
 	var b;
 	if (dir > 0) {
-	    b = document.querySelector('.openwebrx-tune-button[title*="up"], .openwebrx-tune-button[title*="вверх"]');
+	    b = document.querySelector('.openwebrx-tune-button[title*="up"]');
 	} else {
-	    b = document.querySelector('.openwebrx-tune-button[title*="down"], .openwebrx-tune-button[title*="вниз"]');
+	    b = document.querySelector('.openwebrx-tune-button[title*="down"]');
 	}
-	if (b) b.click(); 
+	
+	if (b) {
+	    b.click(); 
+	    var fDispEl = document.getElementById('owrx-thumbtune-display');
+	    if (fDispEl && !state.isEditing) {
+		fDispEl.innerText = utils.formatFreq(utils.getNativeFreq());
+	    }
+	}
     }; 
     
     var sBtn = createBtn(utils.getStepLabel(config.steps[state.currentStepIdx]), 'owrx-tt-btn owrx-tt-btn-step', function () { 
@@ -244,6 +256,7 @@ Plugins.thumbtune.init = function () {
     }); 
     sBtn.style.cssText = 'background: rgba(255,255,255,0.08); font-size: 13px; font-weight: bold; height: 50px;';
     
+    // \u276E and \u276F are single heavy chevrons
     row2.append(
 	createBtn('\u276E', 'owrx-tt-btn owrx-tt-btn-step', function () { doTune(-1); }, true), 
 	sBtn, 
@@ -253,9 +266,18 @@ Plugins.thumbtune.init = function () {
     // Row 3: Rapid frequency jumping
     var row3 = document.createElement('div'); 
     row3.className = 'owrx-tt-row';
+    
+    var doJump = function (dir) {
+	window.jumpBySteps?.(dir);
+	if (!state.isEditing) {
+	    var fDispEl = document.getElementById('owrx-thumbtune-display');
+	    if (fDispEl) fDispEl.innerText = utils.formatFreq(utils.getNativeFreq());
+	}
+    };
+
     row3.append( 
-	createBtn('\u276E\u276E', 'owrx-tt-btn owrx-tt-btn-jump', function () { window.jumpBySteps?.(-1); }, true), 
-	createBtn('\u276F\u276F', 'owrx-tt-btn owrx-tt-btn-jump', function () { window.jumpBySteps?.(1); }, true) 
+	createBtn('\u276E\u276E', 'owrx-tt-btn owrx-tt-btn-jump', function () { doJump(-1); }, true), 
+	createBtn('\u276F\u276F', 'owrx-tt-btn owrx-tt-btn-jump', function () { doJump(1); }, true) 
     ); 
 
     container.append(customSelect, row1, numpadPanel, row2, row3); 
