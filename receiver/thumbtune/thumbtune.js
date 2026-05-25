@@ -1,14 +1,13 @@
 /*
  * ThumbTune plugin for OpenWebRX+
  * Minimalistic floating control panel optimized for one-finger tuning on mobile devices.
- * 
  * Copyright (c) 2026 Denis Brekhov, UB1AON
  * Licensed under MIT
  */
 
 // Create a namespace for our plugin
 Plugins.thumbtune = Plugins.thumbtune || {};
-Plugins.thumbtune._version = 1.0;
+Plugins.thumbtune._version = "1.0.1";
 
 // Global configurations and state within the plugin
 Plugins.thumbtune.config = {
@@ -168,7 +167,7 @@ Plugins.thumbtune.init = function () {
 	setTimeout(function () { state.isUpdatingInternally = false; }, 800); 
     }; 
 
-    // Row 1: Display and Zoom controls
+    // Row 1: Display and Zoom controls (\u2013 is En dash)
     var row1 = document.createElement('div'); 
     row1.className = 'owrx-tt-row';
     
@@ -195,33 +194,33 @@ Plugins.thumbtune.init = function () {
 	if (!state.isEditing) fDisp.innerText = utils.formatFreq(utils.getNativeFreq()); 
     }, config.updateInterval); 
 
-    // Assemble the digital numpad panel
-    ['1','2','3','4','5','6','7','8','9','.','0','вЊ«'].forEach(function (key) {
+    // Assemble the digital numpad panel (\u232B is Backspace icon)
+    ['1','2','3','4','5','6','7','8','9','.','0','\u232B'].forEach(function (key) {
 	var btn = createBtn(key, 'owrx-tt-btn owrx-tt-digit', function () {
-	    if (key === 'вЊ«') state.editValue = state.editValue.slice(0, -1);
+	    if (key === '\u232B') state.editValue = state.editValue.slice(0, -1);
 	    else if (state.editValue.length < 10) state.editValue += key;
 	    utils.updateDisplay();
 	});
-	if (key === 'вЊ«') btn.style.color = 'rgba(255,255,255,0.4)';
+	if (key === '\u232B') btn.style.color = 'rgba(255,255,255,0.4)';
 	numpadPanel.appendChild(btn);
     });
 
-    // Numpad action buttons (Cancel / Apply)
+    // Numpad action buttons (\u238B is Escape, \u23CE is Return)
     var actionsRow = document.createElement('div'); 
     actionsRow.style.cssText = 'grid-column: span 3; display: flex; gap: 12px; width: 100%; margin-top: 8px;';
     actionsRow.append(
-	createBtn('вЋ‹', 'owrx-tt-btn owrx-tt-action owrx-tt-action-esc', utils.closeNumpad),
-	createBtn('вЏЋ', 'owrx-tt-btn owrx-tt-action owrx-tt-action-ent', utils.commitChange)
+	createBtn('\u238B', 'owrx-tt-btn owrx-tt-action owrx-tt-action-esc', utils.closeNumpad),
+	createBtn('\u23CE', 'owrx-tt-btn owrx-tt-action owrx-tt-action-ent', utils.commitChange)
     );
     numpadPanel.appendChild(actionsRow);
 
     row1.append( 
-	createBtn('вЂ“', 'owrx-tt-btn owrx-tt-btn-zoom', function () { window.zoomOutOneStep?.(); }, true), 
+	createBtn('\u2013', 'owrx-tt-btn owrx-tt-btn-zoom', function () { window.zoomOutOneStep?.(); }, true), 
 	fDisp, 
 	createBtn('+', 'owrx-tt-btn owrx-tt-btn-zoom', function () { window.zoomInOneStep?.(); }, true) 
     ); 
 
-    // Row 2: Frequency step configuration and tuning
+    // Row 2: Frequency step configuration and tuning (\u276E and \u276F are single heavy chevrons)
     var row2 = document.createElement('div'); 
     row2.className = 'owrx-tt-row';
     
@@ -231,9 +230,9 @@ Plugins.thumbtune.init = function () {
 	
 	var b;
 	if (dir > 0) {
-	    b = document.querySelector('.openwebrx-tune-button[title*="up"], .openwebrx-tune-button[title*="РІРІРµСЂС…"]');
+	    b = document.querySelector('.openwebrx-tune-button[title*="up"], .openwebrx-tune-button[title*="вверх"]');
 	} else {
-	    b = document.querySelector('.openwebrx-tune-button[title*="down"], .openwebrx-tune-button[title*="РІРЅРёР·"]');
+	    b = document.querySelector('.openwebrx-tune-button[title*="down"], .openwebrx-tune-button[title*="вниз"]');
 	}
 	if (b) b.click(); 
     }; 
@@ -245,17 +244,17 @@ Plugins.thumbtune.init = function () {
     sBtn.style.cssText = 'background: rgba(255,255,255,0.08); font-size: 13px; font-weight: bold; height: 50px;';
     
     row2.append(
-	createBtn('вќ®', 'owrx-tt-btn owrx-tt-btn-step', function () { doTune(-1); }, true), 
+	createBtn('\u276E', 'owrx-tt-btn owrx-tt-btn-step', function () { doTune(-1); }, true), 
 	sBtn, 
-	createBtn('вќЇ', 'owrx-tt-btn owrx-tt-btn-step', function () { doTune(1); }, true)
+	createBtn('\u276F', 'owrx-tt-btn owrx-tt-btn-step', function () { doTune(1); }, true)
     ); 
 
     // Row 3: Rapid frequency jumping
     var row3 = document.createElement('div'); 
     row3.className = 'owrx-tt-row';
     row3.append( 
-	createBtn('вќ®вќ®', 'owrx-tt-btn owrx-tt-btn-jump', function () { window.jumpBySteps?.(-1); }, true), 
-	createBtn('вќЇвќЇ', 'owrx-tt-btn owrx-tt-btn-jump', function () { window.jumpBySteps?.(1); }, true) 
+	createBtn('\u276E\u276E', 'owrx-tt-btn owrx-tt-btn-jump', function () { window.jumpBySteps?.(-1); }, true), 
+	createBtn('\u276F\u276F', 'owrx-tt-btn owrx-tt-btn-jump', function () { window.jumpBySteps?.(1); }, true) 
     ); 
 
     container.append(customSelect, row1, numpadPanel, row2, row3); 
